@@ -1,18 +1,18 @@
-FROM golang:1.21 as builder
-
+FROM golang:1.22-alpine AS builder
 WORKDIR /app
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o GoSimpleForwardingServer .
 
-RUN go build -o server main.go
-
-FROM debian:bullseye-slim
+FROM alpine:latest
 WORKDIR /app
-COPY --from=builder /app/server /app/server
+RUN apk --no-cache add ca-certificates
 
-# Set default port (jika diubah, sesuaikan di fly.toml)
-ENV LISTEN_PORT=80
-ENV FORWARD_ADDR=stratum.novagrid.online:3001
+COPY --from=builder /app/GoSimpleForwardingServer .
 
-EXPOSE 80
+# Koyeb akan mengarahkan traffic ke port ini
+EXPOSE 443
 
-CMD ["/app/server"]
+# Target default (bisa diubah nanti di Environment Variable Koyeb)
+ENV TARGET="global.pearlfortune.org:443"
+
+CMD ["sh", "-c", "./GoSimpleForwardingServer -sp 443 -target ${TARGET}"]
