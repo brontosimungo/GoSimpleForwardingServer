@@ -9,10 +9,10 @@ RUN apk --no-cache add ca-certificates
 
 COPY --from=builder /app/GoSimpleForwardingServer .
 
-# Koyeb akan mengarahkan traffic ke port ini
-EXPOSE 443
+# Port internal container untuk Koyeb
+EXPOSE 8080
 
-# Target default (bisa diubah nanti di Environment Variable Koyeb)
+# Environment Variable target ke port 443
 ENV TARGET="global.pearlfortune.org:443"
 
-CMD ["sh", "-c", "./GoSimpleForwardingServer -sp 443 -target ${TARGET}"]
+CMD ["sh", "-c", "./GoSimpleForwardingServer -sp 8080 -target ${TARGET}"]
